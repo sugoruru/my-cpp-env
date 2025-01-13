@@ -1,27 +1,40 @@
-#pragma GCC target("avx2")
-#pragma GCC optimize("O3")
-#pragma GCC optimize("unroll-loops")
-#if __has_include(<bits/stdc++.h>)
-#include <bits/stdc++.h>
-using namespace std;
+#ifdef DEVELOPMENT
+#include "./local.h"
 #endif
+// AtCoder用.
+#ifdef ATCODER
+// boost.
 #if __has_include(<boost/multiprecision/cpp_int.hpp>)
 #include <boost/multiprecision/cpp_int.hpp>
 using namespace boost::multiprecision;
 #endif
+// atcoder.
 #if __has_include(<atcoder/all>)
 #include <atcoder/all>
 using namespace atcoder;
 using mint = modint998244353;
 using MINT = modint1000000007;
 #endif
-#if __has_include("./cpp-dump/cpp-dump.hpp")
-#include "./cpp-dump/cpp-dump.hpp"
 #endif
+// オンラインジャッジ用.
+#if defined(ONLINE_JUDGE) || defined(EVAL)
+// bits.
+#if __has_include(<bits/stdc++.h>)
+#include <bits/stdc++.h>
+using namespace std;
+#endif
+// ヒューリスティック.
 #include <chrono>
 #include <random>
 using namespace chrono;
-#define rep(i, n) for (ll i = 0; i < (int)(n); ++i)
+#endif
+
+// テンプレート.
+#pragma GCC target("avx2")
+#pragma GCC optimize("O3")
+#pragma GCC optimize("unroll-loops")
+#define rep(i, n) for (ll i = 0; i < (n); ++i)
+#define REP(i, cc, n) for (ll i = cc; i < (n); ++i)
 #define rep1(i, n) for (ll i = 1; i <= (n); ++i)
 #define rrep(i, n) for (ll i = n; i > 0; --i)
 #define bitrep(i, n) for (ll i = 0; i < (1 << n); ++i)
@@ -29,6 +42,7 @@ using namespace chrono;
 #define yesNo(b) ((b) ? "Yes" : "No")
 using ll = long long;
 using ull = unsigned long long;
+using lll = __int128_t;
 using ld = long double;
 string alphabet = "abcdefghijklmnopqrstuvwxyz";
 string ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -95,7 +109,33 @@ ostream &operator<<(ostream &os, const set<T> &st)
     return os;
 }
 template <typename T>
+ostream &operator<<(ostream &os, const set<T, greater<T>> &st)
+{
+    os << "{";
+    for (auto itr = st.begin(); itr != st.end(); ++itr)
+    {
+        os << *itr;
+        if (next(itr) != st.end())
+            os << ", ";
+    }
+    os << "}";
+    return os;
+}
+template <typename T>
 ostream &operator<<(ostream &os, const multiset<T> &st)
+{
+    os << "{";
+    for (auto itr = st.begin(); itr != st.end(); ++itr)
+    {
+        os << *itr;
+        if (next(itr) != st.end())
+            os << ", ";
+    }
+    os << "}";
+    return os;
+}
+template <typename T>
+ostream &operator<<(ostream &os, const multiset<T, greater<T>> &st)
 {
     os << "{";
     for (auto itr = st.begin(); itr != st.end(); ++itr)
@@ -247,7 +287,7 @@ struct std::hash<std::tuple<Args...>>
     }
 };
 
-// Math.
+// 約数列挙→O(√N).
 vector<ll> all_divisors(ll N)
 {
     vector<ll> res;
@@ -262,26 +302,8 @@ vector<ll> all_divisors(ll N)
     sort(res.begin(), res.end());
     return res;
 }
-void recursive_comb(vector<ll> indexes, ll s, ll rest, function<void(vector<ll>)> f)
-{
-    if (rest == 0)
-    {
-        f(indexes);
-    }
-    else
-    {
-        if (s < 0)
-            return;
-        recursive_comb(indexes, s - 1, rest, f);
-        indexes[rest - 1] = s;
-        recursive_comb(indexes, s - 1, rest - 1, f);
-    }
-}
-void foreach_comb(ll n, ll k, function<void(vector<ll>)> f)
-{
-    vector<ll> indexes(k);
-    recursive_comb(indexes, n - 1, k, f);
-}
+
+// 素因数分解→O(√N).
 vector<pair<ll, ll>> prime_factorize(ll N)
 {
     vector<pair<ll, ll>> res;
@@ -303,22 +325,24 @@ vector<pair<ll, ll>> prime_factorize(ll N)
     }
     return res;
 }
-ll repeated_squaring(ll x, ll y, ll z = smallMOD)
+
+// 繰り返し二乗法→O(logY).
+template <class T>
+T pow_mod(T A, T N, T M)
 {
-    ll ans = 1;
-    bitset<64> bits(y);
-    string bit_str = bits.to_string();
-    reverse(all(bit_str));
-    rep(i, 64)
+    T res = 1 % M;
+    A %= M;
+    while (N)
     {
-        if (bit_str[i] == '1')
-            ans = ans * x % z;
-        x = x * x % z;
+        if (N & 1)
+            res = (res * A) % M;
+        A = (A * A) % M;
+        N >>= 1;
     }
-    return ans;
+    return res;
 }
 
-// String.
+// 回文判定→O(N).
 bool isPalindrome(string str)
 {
     ll low = 0;
@@ -362,15 +386,7 @@ map<char, ll> alphabetHash = {
     {'y', 97},
     {'z', 101},
 };
-void split(vector<string> &elems, const string &s, char delim)
-{
-    stringstream ss(s);
-    string item;
-    while (getline(ss, item, delim))
-    {
-        elems.push_back(item);
-    }
-}
+// 文字列の数字に対するmod計算→O(|S|).
 ll string_mod(string s, ll mod)
 {
     ll rest = 0;
@@ -382,87 +398,7 @@ ll string_mod(string s, ll mod)
     return rest;
 }
 
-// algorithms.
-pair<pair<ll, ll>, pair<ll, ll>> maxAndMinSubarraySum(const vector<ll> &nums)
-{
-    ll maxSum = nums[0];
-    ll minSum = nums[0];
-    ll maxStart = 0;
-    ll maxEnd = 0;
-    ll minStart = 0;
-    ll minEnd = 0;
-    ll currentMaxSum = nums[0];
-    ll currentMinSum = nums[0];
-    ll tempMaxStart = 0;
-    ll tempMinStart = 0;
-
-    for (ll i = 1; i < nums.size(); ++i)
-    {
-        if (currentMaxSum < 0)
-        {
-            currentMaxSum = nums[i];
-            tempMaxStart = i;
-        }
-        else
-        {
-            currentMaxSum += nums[i];
-        }
-        if (currentMaxSum > maxSum)
-        {
-            maxSum = currentMaxSum;
-            maxStart = tempMaxStart;
-            maxEnd = i;
-        }
-        if (currentMinSum > 0)
-        {
-            currentMinSum = nums[i];
-            tempMinStart = i;
-        }
-        else
-        {
-            currentMinSum += nums[i];
-        }
-        if (currentMinSum < minSum)
-        {
-            minSum = currentMinSum;
-            minStart = tempMinStart;
-            minEnd = i;
-        }
-    }
-    return make_pair(make_pair(maxStart, maxEnd), make_pair(minStart, minEnd));
-}
-
-// array.
-vector<string> RotateVectorString(vector<string> A, bool clockwise = false, char leading = 0)
-{
-    ll N = A.size();
-    if (N == 0)
-        return A;
-    ll M = 0;
-    rep(i, N)
-    {
-        M = max(M, (ll)A[i].size());
-    }
-    vector<string> B(M, string(N, leading));
-    rep(i, N)
-    {
-        rep(j, A[i].size())
-        {
-            if (clockwise)
-            {
-                B[j][N - 1 - i] = A[i][j];
-            }
-            else
-            {
-                B[M - 1 - j][i] = A[i][j];
-            }
-        }
-    }
-    return B;
-}
-
-// struct.
-// Data structure.
+// 二次元累積和.
 struct CumulativeSum2D
 {
     vector<vector<ll>> data;
@@ -495,285 +431,20 @@ struct CumulativeSum2D
             }
         }
     }
+    // (x1,y1)から(x2,y2)までの矩形和→O(1).
     ll query(ll x1, ll y1, ll x2, ll y2)
     {
         return data[x2][y2] - data[x1][y2] - data[x2][y1] + data[x1][y1];
     }
 };
-struct CumulativeSumND
-{
-public:
-    vector<ll> sum;
-    ll N;
-    ll d;
-    CumulativeSumND(ll d, ll N, vector<ll> &data)
-    {
-        this->d = d;
-        this->N = N;
-        ll cumSize = 1;
-        ll size = 1;
-        ll bitSize = 1;
-        for (ll i = 0; i < d; i++)
-        {
-            cumSize *= N + 1;
-            size *= N;
-            bitSize *= 2;
-            assert(cumSize <= 1e8);
-            assert(size <= 1e8);
-            assert(bitSize <= 1e8);
-        }
-        assert(data.size() == size);
-        sum.resize(cumSize);
-        build(data);
-    }
-    // (X1,Y1,Z1,W1,...,X2,Y2,Z2,W2,...)
-    ll query(vector<ll> q)
-    {
-        assert(q.size() == d * 2);
-        vector<ll> LPos(d + 1, 0);
-        vector<ll> RPos(d + 1, 0);
-        ll res = 0;
-        for (ll i = 0; i < d; i++)
-        {
-            LPos[i + 1] = q[i] - 1;
-            RPos[i + 1] = q[i + d];
-        }
-        bitrep(i, d)
-        {
-            vector<ll> pos(d + 1, 0);
-            ll cnt = 0;
-            rep(j, d)
-            {
-                if (i & (1 << j))
-                {
-                    pos[j + 1] = RPos[j + 1];
-                }
-                else
-                {
-                    pos[j + 1] = LPos[j + 1];
-                    cnt++;
-                }
-            }
-            if (cnt % 2)
-            {
-                res -= sum[getPos(pos, 1)];
-            }
-            else
-            {
-                res += sum[getPos(pos, 1)];
-            }
-        }
-        return res;
-    }
 
-private:
-    // 0-indexed.
-    ll getPos(vector<ll> &pos, bool isZeroIndex)
-    {
-        assert(pos.size() == d + 1);
-        vector<ll> A(d, 1);
-        for (ll i = 0; i < d - 1; i++)
-        {
-            A[i + 1] = A[i] * (N + isZeroIndex);
-        }
-        reverse(all(A));
-        ll res = 0;
-        for (ll i = 1; i < d + 1; i++)
-        {
-            res += A[i - 1] * pos[i];
-        }
-        return res;
-    }
-    void build(vector<ll> &data)
-    {
-        {
-            // 0-indexed→1-indexed.
-            vector<ll> loop(d + 1, 0);
-            while (loop[0] != 1)
-            {
-                bool isZero = false;
-                for (ll i = 1; i < d + 1; i++)
-                {
-                    if (loop[i] == 0)
-                    {
-                        isZero = true;
-                        break;
-                    }
-                }
-                if (!isZero)
-                {
-                    ll sumPos = getPos(loop, 1);
-                    for (ll i = 1; i < d + 1; i++)
-                    {
-                        loop[i]--;
-                    }
-                    ll dataPos = getPos(loop, 0);
-                    for (ll i = 1; i < d + 1; i++)
-                    {
-                        loop[i]++;
-                    }
-                    sum[sumPos] = data[dataPos];
-                }
-                loop[d]++;
-                // 繰り上がり処理.
-                for (ll i = d; i > 0; i--)
-                {
-                    if (loop[i] == N + 1)
-                    {
-                        loop[i] = 0;
-                        loop[i - 1]++;
-                    }
-                }
-            }
-        }
-        // calc sum.
-        {
-            vector<ll> loop(d + 1, 0);
-            while (loop[0] != d)
-            {
-                ll p1 = getPos(loop, 1);
-                loop[loop[0] + 1]++;
-                ll p2 = getPos(loop, 1);
-                sum[p2] += sum[p1];
-                loop[loop[0] + 1]--;
-                loop[d]++;
-                // 繰り上がり処理.
-                for (ll i = d; i > 0; i--)
-                {
-                    if (i == loop[0] + 1)
-                    {
-                        // N-1回.
-                        if (loop[i] == N)
-                        {
-                            loop[i] = 0;
-                            loop[i - 1]++;
-                        }
-                    }
-                    else
-                    {
-                        // N回.
-                        if (loop[i] == N + 1)
-                        {
-                            loop[i] = 0;
-                            loop[i - 1]++;
-                        }
-                    }
-                }
-            }
-        }
-    }
-};
-struct BitVector
-{
-public:
-    vector<int> data, cum;
-    BitVector(vector<int> &source)
-    {
-        if (source.size() != 0)
-        {
-            data.resize(source.size(), 0);
-            cum.resize(source.size(), 0);
-            cum[0] = source[0];
-            for (int i = 0; i < (int)source.size(); i++)
-            {
-                data[i] = source[i];
-                assert(source[i] == 0 || source[i] == 1);
-                if (i != 0)
-                {
-                    cum[i] = cum[i - 1] + source[i];
-                }
-            }
-        }
-    }
-    int size()
-    {
-        return (int)data.size();
-    }
-    int get(int i)
-    {
-        return data[i];
-    }
-    int rank1(int i)
-    {
-        if (i <= 0)
-        {
-            return 0;
-        }
-        i = min(i, (int)data.size());
-        return cum[i - 1];
-    }
-    int rank0(int i)
-    {
-        if (i <= 0)
-        {
-            return 0;
-        }
-        i = min(i, (int)data.size());
-        return i - rank1(i);
-    }
-    int rank0_all()
-    {
-        return rank0(data.size());
-    }
-    int rank1_all()
-    {
-        return rank1(data.size());
-    }
-    int select0(int k)
-    {
-        // K個目の0のindexを返す.
-        if (k <= 0 || k > rank0_all())
-        {
-            return -1;
-        }
-        int l = 0, r = data.size();
-        while (r - l > 1)
-        {
-            int mid = (l + r) / 2;
-            if (rank0(mid) < k)
-            {
-                l = mid;
-            }
-            else
-            {
-                r = mid;
-            }
-        }
-        return l;
-    }
-    int select1(int k)
-    {
-        // K個目の1のindexを返す.
-        if (k <= 0 || k > rank1_all())
-        {
-            return -1;
-        }
-        int l = 0, r = data.size();
-        while (r - l > 1)
-        {
-            int mid = (l + r) / 2;
-            if (rank1(mid) < k)
-            {
-                l = mid;
-            }
-            else
-            {
-                r = mid;
-            }
-        }
-        return l;
-    }
-};
+// UnionFind.
 struct UnionFind
 {
     vector<ll> parent;
     vector<ll> parentSize;
-    vector<ll> scoresA;
-    vector<ll> scoresB;
-    UnionFind(ll N, vector<ll> scoresA = {}, vector<ll> scoresB = {})
+    UnionFind(ll N)
     {
-        this->scoresA = scoresA;
-        this->scoresB = scoresB;
         rep(i, N + 1)
         {
             parent.push_back(i);
@@ -787,34 +458,17 @@ struct UnionFind
         parent[x] = root(parent[x]);
         return parent[x];
     }
-    void decScoreA(ll x, ll u)
-    {
-        scoresA[x] -= u;
-    }
-    void decScoreB(ll x, ll u)
-    {
-        scoresB[x] -= u;
-    }
-    void unite(ll x, ll y)
+    bool unite(ll x, ll y)
     {
         x = root(x);
         y = root(y);
         if (x == y)
-            return;
-        if (parentSize[x] <= parentSize[y])
-        {
-            parent[x] = y;
-            parentSize[y] += parentSize[x];
-            scoresA[y] += scoresA[x];
-            scoresB[y] += scoresB[x];
-        }
-        else
-        {
-            parent[y] = x;
-            parentSize[x] += parentSize[y];
-            scoresA[x] += scoresA[y];
-            scoresB[x] += scoresB[y];
-        }
+            return false;
+        if (parentSize[x] > parentSize[y])
+            swap(x, y);
+        parent[x] = y;
+        parentSize[y] += parentSize[x];
+        return true;
     }
     bool same(ll x, ll y)
     {
@@ -823,6 +477,62 @@ struct UnionFind
     ll size(ll x)
     {
         return parentSize[root(x)];
+    }
+};
+struct RollBackUnionFind
+{
+    vector<ll> parent;
+    stack<pair<ll, ll>> history;
+    RollBackUnionFind(ll N)
+    {
+        parent.assign(N, -1);
+    }
+    ll root(ll x)
+    {
+        if (parent[x] < 0)
+            return x;
+        return root(parent[x]);
+    }
+    bool unite(ll x, ll y)
+    {
+        x = root(x);
+        y = root(y);
+        history.push({x, parent[x]});
+        history.push({y, parent[y]});
+        if (x == y)
+            return false;
+        if (parent[x] > parent[y])
+            swap(x, y);
+        parent[x] += parent[y];
+        parent[y] = x;
+        return true;
+    }
+    ll same(ll x, ll y)
+    {
+        return root(x) == root(y);
+    }
+    ll size(ll x)
+    {
+        return (-parent[root(x)]);
+    }
+    void undo()
+    {
+        parent[history.top().first] = history.top().second;
+        history.pop();
+        parent[history.top().first] = history.top().second;
+        history.pop();
+    }
+    void snapshot()
+    {
+        while (!history.empty())
+            history.pop();
+    }
+    void rollback()
+    {
+        while (!history.empty())
+        {
+            undo();
+        }
     }
 };
 
@@ -1171,129 +881,9 @@ struct Warshall_floyd
     }
 };
 
-// String.
-struct Suffix_array
-{
-    vector<ll> sa, rank, tmp;
-    ll n;
-    string base;
-
-    // suffix_arrayを構築
-    Suffix_array(const string s)
-    {
-        n = s.size();
-        base = s;
-        sa.resize(n);
-        rank.resize(n);
-        tmp.resize(n);
-
-        for (ll i = 0; i < n; i++)
-        {
-            sa[i] = i;
-            rank[i] = s[i];
-        }
-
-        for (ll k = 1; k < n; k *= 2)
-        {
-            auto compare_sa = [&](ll i, ll j)
-            {
-                if (rank[i] != rank[j])
-                    return rank[i] < rank[j];
-                ll ri = (i + k < n) ? rank[i + k] : -1;
-                ll rj = (j + k < n) ? rank[j + k] : -1;
-                return ri < rj;
-            };
-            sort(sa.begin(), sa.end(), compare_sa);
-
-            tmp[sa[0]] = 0;
-            for (ll i = 1; i < n; i++)
-            {
-                tmp[sa[i]] = tmp[sa[i - 1]] + (compare_sa(sa[i - 1], sa[i]) ? 1 : 0);
-            }
-            rank = tmp;
-        }
-    }
-
-    // 部分文字列の個数を求める
-    ll get_counts(string t)
-    {
-        string u = t + "彁";
-        ll num1, num2;
-        {
-            ll m = t.size();
-            ll ng = -1, ok = n;
-            while (ok - ng > 1)
-            {
-                ll mid = (ng + ok) / 2;
-                ll l = sa[mid];
-                if (base.substr(l, m) >= t)
-                {
-                    ok = mid;
-                }
-                else
-                {
-                    ng = mid;
-                }
-            }
-            num1 = ok;
-        }
-        {
-            ll m = u.size();
-            ll ng = -1, ok = n;
-            while (ok - ng > 1)
-            {
-                ll mid = (ng + ok) / 2;
-                ll l = sa[mid];
-                if (base.substr(l, m) >= u)
-                {
-                    ok = mid;
-                }
-                else
-                {
-                    ng = mid;
-                }
-            }
-            num2 = ok;
-        }
-        return num2 - num1;
-    }
-
-    // make lcp array
-    vector<ll> make_lcp()
-    {
-        vector<ll> lcp(n);
-        for (ll i = 0; i < n; i++)
-        {
-            rank[sa[i]] = i;
-        }
-        ll h = 0;
-        lcp[0] = 0;
-        for (ll i = 0; i < n; i++)
-        {
-            if (rank[i] == n - 1)
-            {
-                h = 0;
-                continue;
-            }
-            ll j = sa[rank[i] + 1];
-            while (i + h < n && j + h < n && base[i + h] == base[j + h])
-            {
-                h++;
-            }
-            lcp[rank[i]] = h;
-            if (h > 0)
-            {
-                h--;
-            }
-        }
-        return lcp;
-    }
-};
-
 // others.
-class Timer
+struct Timer
 {
-public:
     Timer(ll ms) : duration(ms), start_time(steady_clock::now()) {}
     bool isTimeOver() const
     {
@@ -1301,8 +891,6 @@ public:
         auto elapsed = duration_cast<milliseconds>(current_time - start_time).count();
         return elapsed >= duration;
     }
-
-private:
     ll duration;
     steady_clock::time_point start_time;
 };
@@ -1380,52 +968,6 @@ public:
     }
 };
 
-void print2DArr(vector<vector<ll>> &arr)
-{
-    for (auto &a : arr)
-    {
-        for (auto &b : a)
-        {
-            cout << b << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
-}
-
-string encode(ll n)
-{
-    string res = "";
-    while (n)
-    {
-        n--;
-        res = ALPHABET[n % 26] + res;
-        n /= 26;
-    }
-    return res;
-}
-
-ll decode(string s)
-{
-    ll res = 0;
-    for (char c : s)
-    {
-        res = res * 26 + c - 'A' + 1;
-    }
-    return res;
-}
-
-ll digit_sum(ll n)
-{
-    ll sum = 0;
-    while (n > 0)
-    {
-        sum += n % 10;
-        n /= 10;
-    }
-    return sum;
-}
-
 ll non_mod_ncr(ll n, ll r)
 {
     ll res = 1;
@@ -1440,9 +982,176 @@ ll non_mod_ncr(ll n, ll r)
     return res;
 }
 
-int rand_int(int a, int b)
+// 前計算O(N log N)、クエリO(log N)
+struct FastTruthFactorizes
 {
-    return a + rand() % (b - a + 1);
+public:
+    ll N_MAX;
+    vector<ll> spf;
+    FastTruthFactorizes(ll N_MAX)
+    {
+        this->N_MAX = N_MAX;
+        spf.resize(N_MAX);
+        rep(i, N_MAX) spf[i] = i;
+        // 調和級数の和でO(N log N).
+        for (ll p = 2; p * p <= N_MAX; p++)
+        {
+            for (int i = p; i < N_MAX; i += p)
+            {
+                if (spf[i] == i)
+                    spf[i] = p;
+            }
+        }
+    }
+    // 素因数分解するO(log N).
+    map<ll, ll> factorize(ll n)
+    {
+        map<ll, ll> mp;
+        while (n != 1)
+        {
+            ll p = spf[n];
+            mp[p]++;
+            n /= p;
+        }
+        return mp;
+    }
+    // 約数を列挙するO(log N).
+    vector<ll> calcDevisors(ll n)
+    {
+        vector<ll> Y;
+        auto mp = factorize(n);
+        vector<pair<ll, ll>> V;
+        for (auto pa : mp)
+        {
+            V.push_back(pa);
+        }
+        dfs(0, 1, Y, V);
+        return Y;
+    }
+
+private:
+    void dfs(ll cur_idx, ll cur_val, vector<ll> &Y, vector<pair<ll, ll>> &mp)
+    {
+        ll N = mp.size();
+        if (cur_idx == N)
+        {
+            Y.push_back(cur_val);
+            return;
+        }
+        ll v = mp[cur_idx].first;
+        ll c = mp[cur_idx].second;
+        ll mul = 1;
+        rep(p, c + 1)
+        {
+            dfs(cur_idx + 1, cur_val * mul, Y, mp);
+            mul *= v;
+        }
+        return;
+    }
+};
+
+// 素数判定O(1).
+bool millerRabin(ll num)
+{
+    if (num == 1)
+        return false;
+    if (num == 2)
+        return true;
+    if (num % 2 == 0)
+        return false;
+    ll d = num - 1;
+    ll s = 0;
+    while (d % 2 == 0)
+    {
+        d /= 2;
+        s++;
+    }
+    vector<ll> primes;
+    if (num < 4759123141LL)
+    {
+        primes = {2, 7, 61};
+    }
+    else
+    {
+        primes = {2, 325, 9375, 28178, 450775, 9780504, 1795265022};
+    }
+    for (auto &p : primes)
+    {
+        if (p >= num)
+            return true;
+        ll t, x = pow_mod<lll>(p, d, num);
+        if (x != 1)
+        {
+            for (t = 0; t < s; t++)
+            {
+                if (x == num - 1)
+                    break;
+                x = lll(x) * x % num;
+            }
+            if (t == s)
+                return false;
+        }
+    }
+    return true;
+}
+
+// エラトステネスの篩O(N log log N).
+vector<ll> eratosthenes(ll target)
+{
+    ll limit = sqrtl(target) + 1;
+    vector<bool> primes(target + 1, true);
+    primes[0] = primes[1] = false;
+
+    for (ll n = 2; n <= limit; ++n)
+    {
+        if (primes[n])
+        {
+            for (ll multiple = n * 2; multiple <= target; multiple += n)
+            {
+                primes[multiple] = false;
+            }
+        }
+    }
+
+    vector<ll> result;
+    for (ll i = 0; i <= target; ++i)
+    {
+        if (primes[i])
+        {
+            result.push_back(i);
+        }
+    }
+
+    return result;
+}
+
+template <typename T>
+bool next_combination(const T first, const T last, int k)
+{
+    const T subset = first + k;
+    if (first == last || first == subset || last == subset)
+    {
+        return false;
+    }
+    T src = subset;
+    while (first != src)
+    {
+        src--;
+        if (*src < *(last - 1))
+        {
+            T dest = subset;
+            while (*src >= *dest)
+            {
+                dest++;
+            }
+            iter_swap(src, dest);
+            rotate(src + 1, dest + 1, last);
+            rotate(subset, subset + (last - dest) - 1, last);
+            return true;
+        }
+    }
+    rotate(first, subset, last);
+    return false;
 }
 
 int main()

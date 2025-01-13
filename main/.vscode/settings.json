@@ -78,9 +78,27 @@
         "unordered_map": "cpp",
         "valarray": "cpp",
         "xhash": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "cfenv": "cpp",
+        "chrono": "cpp",
+        "forward_list": "cpp",
+        "ratio": "cpp",
+        "source_location": "cpp",
+        "stdfloat": "cpp",
+        "strstream": "cpp",
+        "typeindex": "cpp",
+        "unordered_set": "cpp",
+        "variant": "cpp"
     },
-    "cph.language.cpp.Args": "-I C:\\Users\\ruruk\\OneDrive\\デスクトップ\\競プロ",
+    "cph.language.cpp.Args": "-D DEVELOPMENT -I C:\\Users\\ruruk\\OneDrive\\デスクトップ\\競プロ",
     "cph.general.useShortCodeForcesName": false,
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "disabled",
+    "C_Cpp.default.cppStandard": "c++17",
+    "C_Cpp.default.compilerArgs": [
+        "DEVELOPMENT"
+    ],
+    "C_Cpp.default.compileCommands": "",
+    "C_Cpp.default.defines": [
+        "DEVELOPMENT"
+    ]
 }
